@@ -7,8 +7,8 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 nltk.download('vader_lexicon')
 sia = SentimentIntensityAnalyzer()
 
-# OpenAI API Key (Replace with your own key)
-openai.api_key = "your_openai_api_key_here"
+# Securely Load API Key (Make sure to add it to Streamlit secrets)
+openai_client = openai.Client(api_key=st.secrets["openai_api_key"])
 
 # Function to analyze sentiment
 def analyze_sentiment(text):
@@ -22,11 +22,11 @@ def analyze_sentiment(text):
 
 # Function to generate AI response
 def get_ai_response(user_input):
-    response = openai.ChatCompletion.create(
+    response = openai_client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "user", "content": user_input}]
     )
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content  # Corrected response parsing
 
 # Streamlit UI
 st.title("🧘 AI Mental Wellness Chatbot")
