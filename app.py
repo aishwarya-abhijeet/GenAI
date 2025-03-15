@@ -11,8 +11,8 @@ sia = SentimentIntensityAnalyzer()
 gemini_api_key = st.secrets.get("gemini_api_key")
 
 # Validate API key before proceeding
-if not gemini_api_key or not gemini_api_key.startswith("AIza"):  
-    st.error("⚠️ Error: Google Gemini API key is missing or invalid! Please set it in Streamlit secrets.")
+if not gemini_api_key or not gemini_api_key.startswith("AIza"):
+    st.error("⚠️ Error: Google Gemini API key is missing or invalid! Please check Streamlit secrets.")
     st.stop()
 
 # Configure Google Gemini API
@@ -31,17 +31,15 @@ def analyze_sentiment(text):
 # Function to generate AI response using Google Gemini
 def get_ai_response(user_input):
     try:
-        model = genai.GenerativeModel("gemini-pro")
+        model = genai.GenerativeModel("gemini-pro")  # Correct model name
         response = model.generate_content(user_input)
-        
+
         # Ensure response exists and is not empty
         if hasattr(response, "text") and response.text:
             return response.text.strip()
         else:
             return "⚠️ Error: No response generated. Try rephrasing your input."
 
-    except genai.types.GenerativeAIError as e:
-        return f"⚠️ API Error: {e}"
     except Exception as e:
         return f"⚠️ Unexpected Error: {e}"
 
