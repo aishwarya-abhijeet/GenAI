@@ -29,19 +29,22 @@ def analyze_sentiment(text):
         return "😐 Neutral"
 
 # Function to generate AI response using Google Gemini
-def list_available_models():
+def get_ai_response(user_input):
     try:
-        models = genai.list_models()
-        return [model.name for model in models]
-    except Exception as e:
-        return f"⚠️ Error fetching models: {e}"
+        model = genai.GenerativeModel("gemini-1.5-pro")  # ✅ Corrected model name
+        response = model.generate_content(user_input)
 
-st.write("🔍 Checking available models for your API key...")
-available_models = list_available_models()
-st.write("✅ Available models:", available_models)
+        # Ensure response exists and is not empty
+        if hasattr(response, "text") and response.text:
+            return response.text.strip()
+        else:
+            return "⚠️ Error: No response generated. Try rephrasing your input."
+
+    except Exception as e:
+        return f"⚠️ Unexpected Error: {e}"
 
 # Streamlit UI
-st.title("🧘 AI Mental Wellness Chatbot (Powered by Google Gemini)")
+st.title("🧘 AI Mental Wellness Chatbot (Powered by Google Gemini 1.5 Pro)")
 st.write("Hello! I'm here to help you reflect and feel lighter. Type your thoughts below.")
 
 user_input = st.text_area("💬 What's on your mind?", "")
