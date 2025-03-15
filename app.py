@@ -18,6 +18,10 @@ if not gemini_api_key or not gemini_api_key.startswith("AIza"):
 # Configure Google Gemini API
 genai.configure(api_key=gemini_api_key)
 
+# Initialize chat history if not present
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []  # Stores messages for continuous conversation
+
 # Function to analyze sentiment
 def analyze_sentiment(text):
     scores = sia.polarity_scores(text)
@@ -45,17 +49,27 @@ def get_ai_response(user_input):
 
 # Streamlit UI
 st.title("🧘 AI Mental Wellness Chatbot (Powered by Google Gemini 1.5 Pro)")
-st.write("Hello! I'm here to help you reflect and feel lighter. Type your thoughts below.")
+st.write("Hello! I'm here to help you reflect and feel lighter. Let's chat.")
 
-user_input = st.text_area("💬 What's on your mind?", "")
-
-if st.button("Get Support"):
-    if user_input:
-        ai_response = get_ai_response(user_input)
-        sentiment = analyze_sentiment(user_input)
-        st.write(f"**AI Response:** {ai_response}")
-        st.write(f"**Mood Analysis:** {sentiment}")
+# Display chat history
+for message in st.session_state.chat_history:
+    role, text = message  # Each message is stored as (role, text)
+    if role == "user":
+        st.markdown(f"**🧑 You:** {text}")
     else:
-        st.warning("⚠️ Please enter some text before submitting.")
+        st.markdown(f"**🤖 AI:** {text}")
 
-st.write("💡 Try writing about your emotions, challenges, or thoughts. I'll help you process them.")
+# User input field for continuous chat
+user_input = st.text_input("💬 Type your message:")
+
+if st.button("Send"):
+    if user_input:
+        # Add user message to chat history
+        st.session_state.chat_history.append(("user", user_input))
+
+        # Get AI response and add to chat history
+        ai_response = get_ai_response(user_input)
+        st.session_state.chat_history.append(("ai", ai_response))
+
+        # Refresh page to display new messages
+        st.rerun()
