@@ -1,5 +1,5 @@
-import openai
 import streamlit as st
+import google.generativeai as genai
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 
@@ -7,12 +7,16 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 nltk.download('vader_lexicon')
 sia = SentimentIntensityAnalyzer()
 
-# Fetch OpenAI API key securely
-openai_api_key = st.secrets.get("openai_api_key")  # Use .get() to avoid KeyError
+# Securely Fetch Google Gemini API Key
+gemini_api_key = st.secrets.get("gemini_api_key")
 
-if not openai_api_key:
-    st.error("⚠️ OpenAI API key not found! Please set it in Streamlit secrets.")
-    st.stop()  # Stop execution if key is missing
+# Validate API key before proceeding
+if not gemini_api_key or not gemini_api_key.startswith("AIza"):  
+    st.error("⚠️ Error: Google Gemini API key is missing or invalid! Please set it in Streamlit secrets.")
+    st.stop()
+
+# Configure Google Gemini API
+genai.configure(api_key=gemini_api_key)
 
 # Function to analyze sentiment
 def analyze_sentiment(text):
@@ -24,17 +28,25 @@ def analyze_sentiment(text):
     else:
         return "😐 Neutral"
 
-# Function to generate AI response
+# Function to generate AI response using Google Gemini
 def get_ai_response(user_input):
-    client = openai.OpenAI(api_key=openai_api_key)  # Pass API key
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": user_input}]
-    )
-    return response.choices[0].message.content
+    try:
+        model = genai.GenerativeModel("gemini-pro")
+        response = model.generate_content(user_input)
+        
+        # Ensure response exists and is not empty
+        if hasattr(response, "text") and response.text:
+            return response.text.strip()
+        else:
+            return "⚠️ Error: No response generated. Try rephrasing your input."
+
+    except genai.types.GenerativeAIError as e:
+        return f"⚠️ API Error: {e}"
+    except Exception as e:
+        return f"⚠️ Unexpected Error: {e}"
 
 # Streamlit UI
-st.title("🧘 AI Mental Wellness Chatbot")
+st.title("🧘 AI Mental Wellness Chatbot (Powered by Google Gemini)")
 st.write("Hello! I'm here to help you reflect and feel lighter. Type your thoughts below.")
 
 user_input = st.text_area("💬 What's on your mind?", "")
@@ -46,6 +58,6 @@ if st.button("Get Support"):
         st.write(f"**AI Response:** {ai_response}")
         st.write(f"**Mood Analysis:** {sentiment}")
     else:
-        st.warning("Please enter some text before submitting.")
+        st.warning("⚠️ Please enter some text before submitting.")
 
 st.write("💡 Try writing about your emotions, challenges, or thoughts. I'll help you process them.")
