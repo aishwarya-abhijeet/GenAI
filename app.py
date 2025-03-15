@@ -31,7 +31,7 @@ def analyze_sentiment(text):
 # Function to generate AI response using Google Gemini
 def get_ai_response(user_input):
     try:
-        model = genai.GenerativeModel("gemini-pro")  # Correct model name
+        model = genai.GenerativeModel("gemini-pro-latest")  # ✅ Correct model name
         response = model.generate_content(user_input)
 
         # Ensure response exists and is not empty
@@ -40,6 +40,8 @@ def get_ai_response(user_input):
         else:
             return "⚠️ Error: No response generated. Try rephrasing your input."
 
+    except genai.types.NotFoundError:
+        return "⚠️ Error: Model not found. Your API key may not have access."
     except Exception as e:
         return f"⚠️ Unexpected Error: {e}"
 
